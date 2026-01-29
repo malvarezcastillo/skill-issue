@@ -11,7 +11,9 @@
       "Bash(gh api:*)",
       "Bash(git mv:*)",
       "Bash(git push)",
-      "Bash(gh repo rename:*)"
+      "Bash(gh repo rename:*)",
+      "WebSearch",
+      "WebFetch(domain:www.theregister.com)"
     ]
   }
 }
